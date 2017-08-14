@@ -15,6 +15,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     @IBOutlet weak var statusLabel: UILabel!
     
+    @IBOutlet weak var scanButton: UIButton!
     @IBOutlet weak var manufacturerLabel: UILabel!
     var centralManager: CBCentralManager? = nil
     var slicePeripheral: CBPeripheral? = nil
@@ -32,21 +33,43 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Scan for all available CoreBluetooh LE devices
+        // Scan for all available CoreBluetooth LE devices
         centralManager = CBCentralManager(delegate: self, queue: nil)
     }
     
     // MARK: BLE Scanning
     func scanBLEDevices() {
-        centralManager?.scanForPeripherals(withServices: nil, options: nil)
         
-        //stop scanning after 3 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { 
-            self.stopScanForBLEDevices()
+        // Get a list of already connected devices
+        let heartRateService = CBUUID.init(string: SLICE_HEART_RATE_SERVICE_UUID)
+        let connectedPeripherals = centralManager?.retrieveConnectedPeripherals(withServices: [heartRateService])
+        
+        print("Already connected to the following heart rate services:")
+        for peripheral in connectedPeripherals! {
+            if (peripheral.name?.hasPrefix("SLICE"))! {
+                print("We are already connected to a SLICE via another app")
+                self.slicePeripheral = peripheral
+                self.centralManager?.connect(peripheral, options: nil)
+            }
+        }
+        
+        // Only scan if we've not already connected
+        if self.slicePeripheral == nil {
+            
+            print("Scanning for BLE devices")
+            self.scanButton.setTitle("Scanning...", for: .normal)
+            centralManager?.scanForPeripherals(withServices: nil, options: nil)
+            
+            //stop scanning after 3 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { 
+                self.stopScanForBLEDevices()
+            }
         }
     }
     
     func stopScanForBLEDevices() {
+        print("Stopping scan")
+        self.scanButton.setTitle("Scan", for: .normal)
         centralManager?.stopScan()
     }
 
@@ -61,7 +84,30 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         peripheral.discoverServices(nil)
         
         print("Connected: \(peripheral.state == CBPeripheralState.connected)")
-        self.statusLabel.text = "Connected: \(peripheral.state == CBPeripheralState.connected)"
+        
+        var name = "unknown"
+        if let value = peripheral.name {
+            name = value
+        }
+        
+        switch peripheral.state {
+        case .connected:
+            self.statusLabel.text = "Connected to: \(name)"
+            
+        case .connecting:
+            self.statusLabel.text = "Connectting to: \(name)"
+            
+        case .disconnected:
+            self.statusLabel.text = "Disconnected from: \(name)"
+            
+        case .disconnecting:
+            self.statusLabel.text = "Disconnecting from: \(name)"
+        }
+        
+        if peripheral.state == .connected {
+            
+        }
+        
     }
     
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
@@ -198,6 +244,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             self.bpmLabel.text = "\(bpm) bpm"
         }
     }
-
+    
+    // MARK: Actions
+    
+    @IBAction func scanTapped(_ sender: Any) {
+        self.scanBLEDevices()
+    }
 }
 
