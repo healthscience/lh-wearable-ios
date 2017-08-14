@@ -8,17 +8,24 @@
 
 import UIKit
 import CoreBluetooth
+import Alamofire
 
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
     
     @IBOutlet weak var bpmLabel: UILabel!
-    
     @IBOutlet weak var statusLabel: UILabel!
-    
     @IBOutlet weak var scanButton: UIButton!
     @IBOutlet weak var manufacturerLabel: UILabel!
+    
+    @IBOutlet weak var lastUpdatedLabel: UILabel!
+    @IBOutlet weak var heartView: UIView!
+    
+    // BLE stuff
     var centralManager: CBCentralManager? = nil
     var slicePeripheral: CBPeripheral? = nil
+    
+    // Standard service and characterstic UUIDs as defined at
+    // https://www.bluetooth.com/specifications/gatt/services
 
     let SLICE_HEART_RATE_SERVICE_UUID = "180D"
     let SLICE_DEVICE_INFO_SERVICE_UUID = "180A"
@@ -30,8 +37,23 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     let SLICE_BATTERY_LEVEL_CHARACTERSTIC_UUID = "2A19"
     
+    // Server stuff
+    var serverToken = ""
+    var author = ""
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        var keys: NSDictionary?
+        
+        if let path = Bundle.main.path(forResource: "Keys", ofType: "plist") {
+            keys = NSDictionary(contentsOfFile: path)
+        }
+        
+        if let dict = keys {
+            serverToken = (dict["serverToken"] as? String)!
+            author = (dict["author"] as? String)!
+        }
         
         // Scan for all available CoreBluetooth LE devices
         centralManager = CBCentralManager(delegate: self, queue: nil)
@@ -155,7 +177,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         
         for service in peripheral.services! {
-            print("Discovered service \(service.uuid)")
+            print("Discovered service \(service.uuid.uuidString) : \(service.uuid)")
             peripheral.discoverCharacteristics(nil, for: service)
         }
     }
@@ -163,8 +185,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         
         print("Discovered characteristics for \(service.uuid.uuidString) \(service.uuid)")
-
-        if service.uuid.uuidString == SLICE_HEART_RATE_SERVICE_UUID {
+        
+        switch service.uuid.uuidString {
+        case SLICE_HEART_RATE_SERVICE_UUID:
             for aChar in service.characteristics! {
                 if aChar.uuid.uuidString == SLICE_MEASUREMENT_CHARACTERSTIC_UUID {
                     self.slicePeripheral?.setNotifyValue(true, for: aChar)
@@ -175,10 +198,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     self.slicePeripheral?.readValue(for: aChar)
                     print("Found body sensor location characteristic")
                 }
+                
+                print("Characterstic \(aChar.uuid.uuidString) \(aChar.uuid)")
             }
-        }
-        
-        if service.uuid.uuidString == SLICE_DEVICE_INFO_SERVICE_UUID {
+            
+        case SLICE_DEVICE_INFO_SERVICE_UUID:
             for aChar in service.characteristics! {
                 
                 if aChar.uuid.uuidString == SLICE_MANUFACTURER_NAME_CHARACTERSTIC_UUID {
@@ -186,14 +210,24 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }
                 print("Characterstic \(aChar.uuid.uuidString) \(aChar.uuid)")
             }
-        }
-        
-        if service.uuid.uuidString == SLICE_BATTERY_SERVICE_UUID {
+            
+        case SLICE_BATTERY_SERVICE_UUID:
             for aChar in service.characteristics! {
                 print("Characterstic \(aChar.uuid.uuidString) \(aChar.uuid)")
             }
+            
+        default:
+            for aChar in service.characteristics! {
+                print("Characterstic \(aChar.uuid.uuidString) \(aChar.uuid)")
+                //peripheral.setNotifyValue(true, for: aChar)
+                if let descriptors = aChar.descriptors {
+                    for aDescriptor in descriptors {
+                        print("Descriptor \(aDescriptor)")
+                    }
+                }
+            }
+            
         }
-        
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
@@ -210,7 +244,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             getHeartBMPData(characteristic, error: error)
             
         default:
-            print("updated value for \(characteristic.uuid)")
+            print("updated value for \(characteristic.uuid) : \(characteristic.value)")
         }
     }
     
@@ -232,8 +266,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func getHeartBMPData(_ characteristic: CBCharacteristic, error: Error?) {
         if let sensorData = characteristic.value {
             //print("We have heart data")
+            
+            
             var bpm = 0
             sensorData.withUnsafeBytes {  (pointer: UnsafePointer<UInt8>) in
+                //print("Flags \(pointer[0])")
+                
+                // SLICE does not return Engery Expended nor RR Interval
+                // so no code is currently written to handle those values
                 if pointer[0] & 0x01 == 0 {
                     bpm = Int(pointer[1])
                 } else {
@@ -242,6 +282,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }
             
             self.bpmLabel.text = "\(bpm) bpm"
+            
+            let currentDateTime = Date()
+            
+            // initialize the date formatter and set the style
+            let formatter = DateFormatter()
+            formatter.timeStyle = .medium
+            formatter.dateStyle = .long
+        
+            self.lastUpdatedLabel.text = formatter.string(from: currentDateTime)
+            postHeartRate(bpm, time: currentDateTime)
         }
     }
     
@@ -250,5 +300,24 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBAction func scanTapped(_ sender: Any) {
         self.scanBLEDevices()
     }
-}
+    
+    // Server
+    func postHeartRate(_ bpm: Int, time: Date) {
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
 
+        let parameters: Parameters = [
+            "device": "mio",
+            "hr": "\(bpm)",
+            "author": author,
+            "timestamp": formatter.string(from: time)
+        ]
+                
+        // Both calls are equivalent
+        Alamofire.request("http://188.166.138.93:8881/datasave/\(serverToken)", method: .post, parameters: parameters, encoding: JSONEncoding.default)
+            .responseJSON { response in
+                debugPrint(response)
+        }
+    }
+}

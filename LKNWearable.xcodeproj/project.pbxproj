@@ -12,6 +12,8 @@
 		493F214E1F0D5EBC002237F7 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 493F214C1F0D5EBC002237F7 /* Main.storyboard */; };
 		493F21501F0D5EBC002237F7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 493F214F1F0D5EBC002237F7 /* Assets.xcassets */; };
 		493F21531F0D5EBC002237F7 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 493F21511F0D5EBC002237F7 /* LaunchScreen.storyboard */; };
+		495C431D1F4246510034DDB2 /* Keys.plist in Resources */ = {isa = PBXBuildFile; fileRef = 495C431C1F4246510034DDB2 /* Keys.plist */; };
+		495C431F1F4247160034DDB2 /* Keys_dummy.plist in Resources */ = {isa = PBXBuildFile; fileRef = 495C431E1F4247160034DDB2 /* Keys_dummy.plist */; };
 		9E05C5C31C8DDCBF0204A5E3 /* Pods_LKNWearable.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DC19717F3BCEB6AA50E89EE /* Pods_LKNWearable.framework */; };
 /* End PBXBuildFile section */
 
@@ -25,6 +27,8 @@
 		493F214F1F0D5EBC002237F7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		493F21521F0D5EBC002237F7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		493F21541F0D5EBC002237F7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		495C431C1F4246510034DDB2 /* Keys.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Keys.plist; sourceTree = "<group>"; };
+		495C431E1F4247160034DDB2 /* Keys_dummy.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Keys_dummy.plist; sourceTree = "<group>"; };
 		D48DEF5507BFDBE507284E95 /* Pods-LKNWearable.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LKNWearable.release.xcconfig"; path = "Pods/Target Support Files/Pods-LKNWearable/Pods-LKNWearable.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -84,6 +88,8 @@
 				493F214F1F0D5EBC002237F7 /* Assets.xcassets */,
 				493F21511F0D5EBC002237F7 /* LaunchScreen.storyboard */,
 				493F21541F0D5EBC002237F7 /* Info.plist */,
+				495C431C1F4246510034DDB2 /* Keys.plist */,
+				495C431E1F4247160034DDB2 /* Keys_dummy.plist */,
 			);
 			path = LKNWearable;
 			sourceTree = "<group>";
@@ -156,7 +162,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				495C431D1F4246510034DDB2 /* Keys.plist in Resources */,
 				493F21531F0D5EBC002237F7 /* LaunchScreen.storyboard in Resources */,
+				495C431F1F4247160034DDB2 /* Keys_dummy.plist in Resources */,
 				493F21501F0D5EBC002237F7 /* Assets.xcassets in Resources */,
 				493F214E1F0D5EBC002237F7 /* Main.storyboard in Resources */,
 			);
@@ -386,6 +394,7 @@
 				493F21591F0D5EBC002237F7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
