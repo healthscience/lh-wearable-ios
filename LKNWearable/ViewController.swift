@@ -16,26 +16,53 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet weak var statusLabel: UILabel!
     @IBOutlet weak var scanButton: UIButton!
     @IBOutlet weak var manufacturerLabel: UILabel!
+    @IBOutlet weak var locationLabel: UILabel!
+    @IBOutlet weak var batteryLevelLabel: UILabel!
     
     @IBOutlet weak var lastUpdatedLabel: UILabel!
     @IBOutlet weak var heartView: UIView!
+    @IBOutlet weak var heartInsideView: UIView!
+    @IBOutlet weak var zone1Label: UILabel!
+    @IBOutlet weak var zone2Label: UILabel!
+    @IBOutlet weak var zone3Label: UILabel!
+    @IBOutlet weak var zone4Label: UILabel!
+    @IBOutlet weak var zone5Label: UILabel!
+    @IBOutlet weak var currentZoneLabel: UILabel!
     
     // BLE stuff
     var centralManager: CBCentralManager? = nil
-    var slicePeripheral: CBPeripheral? = nil
+    var heartMonitorPeripheral: CBPeripheral? = nil
+    var lostPeripheral: CBPeripheral? = nil // device previously connected to when disconnected
+    
+    // Heart Rate Zones
+    var restingHeartRate = 63
+    var age = 44
+    var heartRateReserve = 0
+    
+    var zoneColours = [UIColor.magenta, UIColor.blue, UIColor.green, UIColor.yellow, UIColor.orange, UIColor.red]
     
     // Standard service and characterstic UUIDs as defined at
     // https://www.bluetooth.com/specifications/gatt/services
 
-    let SLICE_HEART_RATE_SERVICE_UUID = "180D"
-    let SLICE_DEVICE_INFO_SERVICE_UUID = "180A"
-    let SLICE_BATTERY_SERVICE_UUID = "180F"
+    let HEART_RATE_SERVICE_UUID = "180D"
+    let DEVICE_INFO_SERVICE_UUID = "180A"
+    let BATTERY_SERVICE_UUID = "180F"
     
-    let SLICE_MANUFACTURER_NAME_CHARACTERSTIC_UUID = "2A29"
-    let SLICE_MEASUREMENT_CHARACTERSTIC_UUID = "2A37"
-    let SLICE_BODY_LOCATION_CHARACTERSTIC_UUID = "2A38"
+    let MANUFACTURER_NAME_CHARACTERSTIC_UUID = "2A29"
+    let HEART_RATE_MEASUREMENT_CHARACTERSTIC_UUID = "2A37"
+    let BODY_LOCATION_CHARACTERSTIC_UUID = "2A38"
     
-    let SLICE_BATTERY_LEVEL_CHARACTERSTIC_UUID = "2A19"
+    let BATTERY_LEVEL_CHARACTERSTIC_UUID = "2A19"
+    
+    var deviceName = ""
+    var location = ""
+    
+    var heartRateZones = [ClosedRange<Int>]()
+    var currentZone = 0
+    
+    var heartData = [Parameters]()
+    
+    var hasLostConnection = false
     
     // Server stuff
     var serverToken = ""
@@ -43,6 +70,29 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        self.heartView.layer.cornerRadius = 60
+        self.heartView.clipsToBounds = true
+        
+        self.heartInsideView.layer.cornerRadius = 40
+        self.heartInsideView.clipsToBounds = true
+        
+        let maxHeartRate = 220 - age
+        heartRateReserve = maxHeartRate - restingHeartRate
+        
+        
+        heartRateZones.append((Int(Double(heartRateReserve) * 0.0) + restingHeartRate)...(Int(Double(heartRateReserve) * 0.5) + restingHeartRate))
+        heartRateZones.append((Int(Double(heartRateReserve) * 0.5) + restingHeartRate)...(Int(Double(heartRateReserve) * 0.6) + restingHeartRate))
+        heartRateZones.append((Int(Double(heartRateReserve) * 0.6) + restingHeartRate)...(Int(Double(heartRateReserve) * 0.7) + restingHeartRate))
+        heartRateZones.append((Int(Double(heartRateReserve) * 0.7) + restingHeartRate)...(Int(Double(heartRateReserve) * 0.8) + restingHeartRate))
+        heartRateZones.append((Int(Double(heartRateReserve) * 0.8) + restingHeartRate)...(Int(Double(heartRateReserve) * 0.9) + restingHeartRate))
+        heartRateZones.append((Int(Double(heartRateReserve) * 0.9) + restingHeartRate)...(Int(Double(heartRateReserve) * 1.0) + restingHeartRate))
+
+        zone1Label.text = "Zone 1 : \(heartRateZones[1].lowerBound) - \(heartRateZones[1].upperBound)"
+        zone2Label.text = "Zone 2 : \(heartRateZones[2].lowerBound) - \(heartRateZones[2].upperBound)"
+        zone3Label.text = "Zone 3 : \(heartRateZones[3].lowerBound) - \(heartRateZones[3].upperBound)"
+        zone4Label.text = "Zone 4 : \(heartRateZones[4].lowerBound) - \(heartRateZones[4].upperBound)"
+        zone5Label.text = "Zone 5 : \(heartRateZones[5].lowerBound) - \(heartRateZones[5].upperBound)"
         
         var keys: NSDictionary?
         
@@ -63,20 +113,28 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func scanBLEDevices() {
         
         // Get a list of already connected devices
-        let heartRateService = CBUUID.init(string: SLICE_HEART_RATE_SERVICE_UUID)
+        let heartRateService = CBUUID.init(string: HEART_RATE_SERVICE_UUID)
         let connectedPeripherals = centralManager?.retrieveConnectedPeripherals(withServices: [heartRateService])
         
         print("Already connected to the following heart rate services:")
         for peripheral in connectedPeripherals! {
             if (peripheral.name?.hasPrefix("SLICE"))! {
                 print("We are already connected to a SLICE via another app")
-                self.slicePeripheral = peripheral
+                self.deviceName = "mio"
+                self.heartMonitorPeripheral = peripheral
                 self.centralManager?.connect(peripheral, options: nil)
+            } else if (peripheral.name?.hasPrefix("TICKR"))! {
+                self.deviceName = "tickr"
+                print("We are already connected to a TICKR via another app")
+                self.heartMonitorPeripheral = peripheral
+                self.centralManager?.connect(peripheral, options: nil)
+            } else {
+                print("Connected to \(peripheral.name)")
             }
         }
         
         // Only scan if we've not already connected
-        if self.slicePeripheral == nil {
+        if self.heartMonitorPeripheral == nil {
             
             print("Scanning for BLE devices")
             self.scanButton.setTitle("Scanning...", for: .normal)
@@ -114,7 +172,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         
         switch peripheral.state {
         case .connected:
-            self.statusLabel.text = "Connected to: \(name)"
+            if self.hasLostConnection {
+                self.statusLabel.text = "Reconnected to: \(name)"
+                if peripheral == self.lostPeripheral {
+                    self.stopScanForBLEDevices()
+                }
+            } else {
+                self.statusLabel.text = "Connected to: \(name)"
+            }
             
         case .connecting:
             self.statusLabel.text = "Connectting to: \(name)"
@@ -138,7 +203,15 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             print("Found \(localName)")
             if localName.hasPrefix("SLICE") {
                 print("It is a SLICE")
-                self.slicePeripheral = peripheral
+                self.deviceName = "mio"
+                self.heartMonitorPeripheral = peripheral
+                self.centralManager?.connect(peripheral, options: nil)
+            }
+            
+            if localName.hasPrefix("TICKR") {
+                print("It is a TICKR")
+                self.deviceName = "tickr"
+                self.heartMonitorPeripheral = peripheral
                 self.centralManager?.connect(peripheral, options: nil)
             }
         }
@@ -147,6 +220,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         
+        if peripheral == self.heartMonitorPeripheral {
+            self.lostPeripheral = peripheral
+            self.heartMonitorPeripheral = nil
+            self.statusLabel.text = "Disconnected"
+            self.hasLostConnection = true
+            // Try and reconnect
+            
+            self.scanButton.setTitle("Scanning...", for: .normal)
+            centralManager?.scanForPeripherals(withServices: nil, options: nil)
+        }
     }
     
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -187,32 +270,36 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         print("Discovered characteristics for \(service.uuid.uuidString) \(service.uuid)")
         
         switch service.uuid.uuidString {
-        case SLICE_HEART_RATE_SERVICE_UUID:
+        case HEART_RATE_SERVICE_UUID:
             for aChar in service.characteristics! {
-                if aChar.uuid.uuidString == SLICE_MEASUREMENT_CHARACTERSTIC_UUID {
-                    self.slicePeripheral?.setNotifyValue(true, for: aChar)
+                if aChar.uuid.uuidString == HEART_RATE_MEASUREMENT_CHARACTERSTIC_UUID {
+                    self.heartMonitorPeripheral?.setNotifyValue(true, for: aChar)
                     print("Found heart rate measurement characteristic")
                 }
                 
-                if aChar.uuid.uuidString == SLICE_BODY_LOCATION_CHARACTERSTIC_UUID {
-                    self.slicePeripheral?.readValue(for: aChar)
+                if aChar.uuid.uuidString == BODY_LOCATION_CHARACTERSTIC_UUID {
+                    self.heartMonitorPeripheral?.readValue(for: aChar)
                     print("Found body sensor location characteristic")
                 }
                 
                 print("Characterstic \(aChar.uuid.uuidString) \(aChar.uuid)")
             }
             
-        case SLICE_DEVICE_INFO_SERVICE_UUID:
+        case DEVICE_INFO_SERVICE_UUID:
             for aChar in service.characteristics! {
                 
-                if aChar.uuid.uuidString == SLICE_MANUFACTURER_NAME_CHARACTERSTIC_UUID {
-                    slicePeripheral?.readValue(for: aChar)
+                if aChar.uuid.uuidString == MANUFACTURER_NAME_CHARACTERSTIC_UUID {
+                    heartMonitorPeripheral?.readValue(for: aChar)
                 }
                 print("Characterstic \(aChar.uuid.uuidString) \(aChar.uuid)")
             }
             
-        case SLICE_BATTERY_SERVICE_UUID:
+        case BATTERY_SERVICE_UUID:
             for aChar in service.characteristics! {
+                if aChar.uuid.uuidString == BATTERY_LEVEL_CHARACTERSTIC_UUID {
+                    self.heartMonitorPeripheral?.setNotifyValue(true, for: aChar)
+                    print("Found batter level characteristic")
+                }
                 print("Characterstic \(aChar.uuid.uuidString) \(aChar.uuid)")
             }
             
@@ -234,14 +321,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         
         
         switch characteristic.uuid.uuidString {
-        case SLICE_MANUFACTURER_NAME_CHARACTERSTIC_UUID:
+        case MANUFACTURER_NAME_CHARACTERSTIC_UUID:
             getManufactureName(characteristic)
             
-        case SLICE_BODY_LOCATION_CHARACTERSTIC_UUID:
+        case BODY_LOCATION_CHARACTERSTIC_UUID:
             getBodyLocation(characteristic)
             
-        case SLICE_MEASUREMENT_CHARACTERSTIC_UUID:
+        case HEART_RATE_MEASUREMENT_CHARACTERSTIC_UUID:
             getHeartBMPData(characteristic, error: error)
+            
+        case BATTERY_LEVEL_CHARACTERSTIC_UUID:
+            getBatteryLevel(characteristic)
             
         default:
             print("updated value for \(characteristic.uuid) : \(characteristic.value)")
@@ -259,7 +349,21 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             print("We have body location")
             sensorData.withUnsafeBytes {  (pointer: UnsafePointer<UInt8>) in
                 print("Body location \(pointer[0])")
+                let locations = ["other", "chest", "wrist", "finger", "hand", "ear lobe", "foot"]
+                
+                self.location = locations[Int(pointer[0])]
+                self.locationLabel.text = "Location \(locations[Int(pointer[0])])"
             }
+        }
+    }
+    
+    func getBatteryLevel(_ characteristic: CBCharacteristic) {
+        if let data = characteristic.value {
+            print("We have battery level")
+            data.withUnsafeBytes({ (pointer: UnsafePointer<UInt8>) in
+                print("Battery level \(pointer[0])")
+                self.batteryLevelLabel.text = "Battery \(pointer[0])%"
+            })
         }
     }
     
@@ -290,7 +394,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             formatter.timeStyle = .medium
             formatter.dateStyle = .long
         
+            for zone in 0...5 {
+                let zoneRange = heartRateZones[zone]
+                if zoneRange.contains(bpm) {
+                    currentZone = zone
+                    break
+                }
+            }
             self.lastUpdatedLabel.text = formatter.string(from: currentDateTime)
+            self.currentZoneLabel.text = "Zone \(currentZone)"
+            self.heartView.backgroundColor = zoneColours[currentZone]
             postHeartRate(bpm, time: currentDateTime)
         }
     }
@@ -308,12 +421,20 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
 
         let parameters: Parameters = [
-            "device": "mio",
+            "device": "mio", //self.deviceName,
+            "location" : self.location,
             "hr": "\(bpm)",
             "author": author,
             "timestamp": formatter.string(from: time)
         ]
-                
+        
+        /*
+        let docsBaseURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let heartDataURL = docsBaseURL.appendingPathComponent("heartdata.plist")
+        
+        heartData.append(parameters)
+ */
+  
         // Both calls are equivalent
         Alamofire.request("http://188.166.138.93:8881/datasave/\(serverToken)", method: .post, parameters: parameters, encoding: JSONEncoding.default)
             .responseJSON { response in
