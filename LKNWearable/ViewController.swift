@@ -9,6 +9,7 @@
 import UIKit
 import CoreBluetooth
 import Alamofire
+import CoreData
 
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
     
@@ -56,11 +57,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     var deviceName = ""
     var location = ""
+    var locationID = 0
     
     var heartRateZones = [ClosedRange<Int>]()
     var currentZone = 0
     
-    var heartData = [Parameters]()
+    var heartData = [NSManagedObject]()
     
     var hasLostConnection = false
     
@@ -107,6 +109,15 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         
         // Scan for all available CoreBluetooth LE devices
         centralManager = CBCentralManager(delegate: self, queue: nil)
+    }
+    
+    // MARK: - Navigation
+    
+    // In a storyboard-based application, you will often want to do a little preparation before navigation
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let controller = segue.destination as? HeartDataTableViewController {
+            controller.heartRateZones = self.heartRateZones
+        }
     }
     
     // MARK: BLE Scanning
@@ -349,10 +360,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             print("We have body location")
             sensorData.withUnsafeBytes {  (pointer: UnsafePointer<UInt8>) in
                 print("Body location \(pointer[0])")
+                self.locationID = Int(pointer[0])
                 let locations = ["other", "chest", "wrist", "finger", "hand", "ear lobe", "foot"]
                 
-                self.location = locations[Int(pointer[0])]
-                self.locationLabel.text = "Location \(locations[Int(pointer[0])])"
+                self.location = locations[self.locationID]
+                self.locationLabel.text = "Location \(locations[self.locationID])"
             }
         }
     }
@@ -385,6 +397,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }
             }
             
+            print("\(bpm) bpm")
+            
             self.bpmLabel.text = "\(bpm) bpm"
             
             let currentDateTime = Date()
@@ -404,7 +418,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             self.lastUpdatedLabel.text = formatter.string(from: currentDateTime)
             self.currentZoneLabel.text = "Zone \(currentZone)"
             self.heartView.backgroundColor = zoneColours[currentZone]
-            postHeartRate(bpm, time: currentDateTime)
+            save(bpm, time: currentDateTime)
+            //postHeartRate(bpm, time: currentDateTime)
         }
     }
     
@@ -413,6 +428,30 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBAction func scanTapped(_ sender: Any) {
         self.scanBLEDevices()
     }
+    
+    // CoreData
+    func save(_ bpm: Int, time: Date) {
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+            return
+        }
+        
+        let managedContext = appDelegate.persistentContainer.viewContext
+        let entity = NSEntityDescription.entity(forEntityName: "HeartRate", in: managedContext)!
+        let heartRate = NSManagedObject(entity: entity, insertInto: managedContext)
+        heartRate.setValue(bpm, forKey: "bpm")
+        heartRate.setValue(deviceName, forKey: "device")
+        heartRate.setValue(locationID, forKey: "location")
+        heartRate.setValue(false, forKey: "posted")
+        heartRate.setValue(time, forKey: "timestamp")
+        
+        do {
+            try managedContext.save()
+            heartData.append(heartRate)
+        } catch let error as NSError {
+            print("Could not save \(error), \(error.userInfo)")
+        }
+    }
+    
     
     // Server
     func postHeartRate(_ bpm: Int, time: Date) {
