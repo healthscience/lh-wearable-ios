@@ -10,24 +10,53 @@ import UIKit
 import CoreData
 
 
-class HeartDataTableViewController: UITableViewController {
+class HeartDataTableViewController: UITableViewController, UICollectionViewDelegate, UICollectionViewDataSource {
     
     var heartData = [NSManagedObject]()
     var heartRateZones = [ClosedRange<Int>]()
+    var zoneBackgroundColours = [UIColor]()
+    var zoneTextColours = [UIColor]()
+    
+    var currentDate = Date()
+    var baseDate = Date()
 
+    @IBOutlet weak var collectionView: UICollectionView!
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let formatter = DateFormatter()
+        formatter.timeStyle = .none
+        formatter.dateStyle = .short
+        
+        self.title = formatter.string(from: currentDate)
 
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        
+        let layout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()
+        let width = UIScreen.main.bounds.width
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 5)
+        layout.itemSize = CGSize(width: width / 8, height: width / 8)
+        layout.minimumInteritemSpacing = 0
+        layout.minimumLineSpacing = 0
+        collectionView!.collectionViewLayout = layout
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
+        reloadData()
+    }
+
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        // Dispose of any resources that can be recreated.
+    }
+    
+    func reloadData() {
         guard let appDelegate =
             UIApplication.shared.delegate as? AppDelegate else {
                 return
@@ -39,16 +68,22 @@ class HeartDataTableViewController: UITableViewController {
         let sortDescriptors = [sort]
         fetchRequest.sortDescriptors = sortDescriptors
         
+        let calendar = Calendar.current
+        let startDate = calendar.startOfDay(for: currentDate)
+        let endDate = Calendar.current.date(byAdding: .day, value: 1, to: startDate)
+        
+        
+        let predicate = NSPredicate(format: "(timestamp >= %@) AND (timestamp < %@)", startDate as CVarArg, endDate! as CVarArg);
+        
+        fetchRequest.predicate = predicate
+        
         do {
             heartData = try managedContext.fetch(fetchRequest)
         } catch let error as NSError {
             print("Could not fetch. \(error), \(error.userInfo)")
         }
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+        
+        self.tableView.reloadData()
     }
 
     // MARK: - Table view data source
@@ -76,6 +111,11 @@ class HeartDataTableViewController: UITableViewController {
             date = value
         }
         
+        var posted = false
+        if let value = heartRate.value(forKey: "posted") as? Bool {
+            posted = value
+        }
+        
         var currentZone = 0
         for zone in 0...5 {
             let zoneRange = heartRateZones[zone]
@@ -88,10 +128,26 @@ class HeartDataTableViewController: UITableViewController {
         // initialize the date formatter and set the style
         let formatter = DateFormatter()
         formatter.timeStyle = .medium
-        formatter.dateStyle = .short
+        formatter.dateStyle = .none
         
-        cell.textLabel?.text = formatter.string(from: date)
-        cell.detailTextLabel?.text = "\(bpm) : \(currentZone)"
+        let timeLabel = cell.viewWithTag(1) as! UILabel
+        let bpmLabel = cell.viewWithTag(2) as! UILabel
+        let zoneLabel = cell.viewWithTag(3) as! UILabel
+        timeLabel.text = formatter.string(from: date)
+        
+        if posted {
+            timeLabel.textColor = .green
+        } else {
+            timeLabel.textColor = .red
+        }
+        
+        bpmLabel.text = "\(bpm)"
+        zoneLabel.text = "\(currentZone)"
+        zoneLabel.clipsToBounds = true
+        zoneLabel.layer.cornerRadius = 10
+
+        zoneLabel.backgroundColor = self.zoneBackgroundColours[currentZone]
+        zoneLabel.textColor = self.zoneTextColours[currentZone]
         
         return cell
     }
@@ -141,4 +197,85 @@ class HeartDataTableViewController: UITableViewController {
     }
     */
 
+    // MARK: UICollectionView
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return 7
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "day", for: indexPath)
+        
+        let today = baseDate
+        let date = Calendar.current.date(byAdding: .day, value: -(6 - indexPath.row), to: today)!
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "en_GB")
+        dateFormatter.setLocalizedDateFormatFromTemplate("EEEEEE")
+        
+        let dayLabel = cell.viewWithTag(2) as! UILabel
+        dayLabel.text = dateFormatter.string(from: date)
+        
+        dateFormatter.setLocalizedDateFormatFromTemplate("d/MM")
+        let dateLabel = cell.viewWithTag(1) as! UILabel
+        dateLabel.text = dateFormatter.string(from: date)
+        
+        return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        
+        let today = baseDate
+        currentDate = Calendar.current.date(byAdding: .day, value: -(6 - indexPath.row), to: today)!
+        
+        let formatter = DateFormatter()
+        formatter.timeStyle = .none
+        formatter.dateStyle = .short
+        
+        self.title = formatter.string(from: currentDate)
+        
+        self.reloadData()
+    }
+    
+    @IBAction func swipeGestureRecongized(_ sender: Any) {
+        baseDate = Calendar.current.date(byAdding: .day, value: -7, to: baseDate)!
+        currentDate = baseDate
+        
+        let formatter = DateFormatter()
+        formatter.timeStyle = .none
+        formatter.dateStyle = .short
+        
+        self.title = formatter.string(from: currentDate)
+        
+        self.collectionView.reloadData()
+        self.reloadData()
+    }
+    
+    @IBAction func swipeLeftGestureRecongized(_ sender: Any) {
+        baseDate = Calendar.current.date(byAdding: .day, value: 7, to: baseDate)!
+        currentDate = baseDate
+        
+        let formatter = DateFormatter()
+        formatter.timeStyle = .none
+        formatter.dateStyle = .short
+        
+        self.title = formatter.string(from: currentDate)
+        
+        self.collectionView.reloadData()
+        self.reloadData()
+    }
+    
+    @IBAction func todayTapped(_ sender: Any) {
+        baseDate = Date()
+        currentDate = baseDate
+        
+        let formatter = DateFormatter()
+        formatter.timeStyle = .none
+        formatter.dateStyle = .short
+        
+        self.title = formatter.string(from: currentDate)
+        
+        self.collectionView.reloadData()
+        self.reloadData()
+    }
 }

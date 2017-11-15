@@ -23,12 +23,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet weak var lastUpdatedLabel: UILabel!
     @IBOutlet weak var heartView: UIView!
     @IBOutlet weak var heartInsideView: UIView!
+    @IBOutlet weak var zone0Label: UILabel!
     @IBOutlet weak var zone1Label: UILabel!
     @IBOutlet weak var zone2Label: UILabel!
     @IBOutlet weak var zone3Label: UILabel!
     @IBOutlet weak var zone4Label: UILabel!
     @IBOutlet weak var zone5Label: UILabel!
     @IBOutlet weak var currentZoneLabel: UILabel!
+    @IBOutlet weak var sessionMaxLabel: UILabel!
     
     // BLE stuff
     var centralManager: CBCentralManager? = nil
@@ -41,6 +43,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var heartRateReserve = 0
     
     var zoneColours = [UIColor.magenta, UIColor.blue, UIColor.green, UIColor.yellow, UIColor.orange, UIColor.red]
+    var zoneTextColours = [UIColor.white, UIColor.white, UIColor.black, UIColor.black, UIColor.white, UIColor.white]
     
     // Standard service and characterstic UUIDs as defined at
     // https://www.bluetooth.com/specifications/gatt/services
@@ -62,6 +65,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var heartRateZones = [ClosedRange<Int>]()
     var currentZone = 0
     
+    var sessionMax = 0
+    
     var heartData = [NSManagedObject]()
     
     var hasLostConnection = false
@@ -73,15 +78,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.heartView.layer.cornerRadius = 60
+        self.heartView.layer.cornerRadius = 100
         self.heartView.clipsToBounds = true
         
-        self.heartInsideView.layer.cornerRadius = 40
+        self.heartInsideView.layer.cornerRadius = 75
         self.heartInsideView.clipsToBounds = true
+        
+        self.sessionMaxLabel.text = "\(sessionMax)"
         
         let maxHeartRate = 220 - age
         heartRateReserve = maxHeartRate - restingHeartRate
-        
         
         heartRateZones.append((Int(Double(heartRateReserve) * 0.0) + restingHeartRate)...(Int(Double(heartRateReserve) * 0.5) + restingHeartRate))
         heartRateZones.append((Int(Double(heartRateReserve) * 0.5) + restingHeartRate)...(Int(Double(heartRateReserve) * 0.6) + restingHeartRate))
@@ -90,11 +96,33 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         heartRateZones.append((Int(Double(heartRateReserve) * 0.8) + restingHeartRate)...(Int(Double(heartRateReserve) * 0.9) + restingHeartRate))
         heartRateZones.append((Int(Double(heartRateReserve) * 0.9) + restingHeartRate)...(Int(Double(heartRateReserve) * 1.0) + restingHeartRate))
 
+        zone0Label.text = "Zone 0 : less than \(heartRateZones[1].lowerBound)"
         zone1Label.text = "Zone 1 : \(heartRateZones[1].lowerBound) - \(heartRateZones[1].upperBound)"
         zone2Label.text = "Zone 2 : \(heartRateZones[2].lowerBound) - \(heartRateZones[2].upperBound)"
         zone3Label.text = "Zone 3 : \(heartRateZones[3].lowerBound) - \(heartRateZones[3].upperBound)"
         zone4Label.text = "Zone 4 : \(heartRateZones[4].lowerBound) - \(heartRateZones[4].upperBound)"
         zone5Label.text = "Zone 5 : \(heartRateZones[5].lowerBound) - \(heartRateZones[5].upperBound)"
+        
+        zone0Label.backgroundColor = zoneColours[0]
+        zone1Label.backgroundColor = zoneColours[1]
+        zone2Label.backgroundColor = zoneColours[2]
+        zone3Label.backgroundColor = zoneColours[3]
+        zone4Label.backgroundColor = zoneColours[4]
+        zone5Label.backgroundColor = zoneColours[5]
+        
+        zone0Label.textColor = zoneTextColours[0]
+        zone1Label.textColor = zoneTextColours[1]
+        zone2Label.textColor = zoneTextColours[2]
+        zone3Label.textColor = zoneTextColours[3]
+        zone4Label.textColor = zoneTextColours[4]
+        zone5Label.textColor = zoneTextColours[5]
+        
+        
+        self.bpmLabel.text = "???"
+        
+        self.lastUpdatedLabel.text = ""
+        self.currentZoneLabel.text = "Zone ??"
+        self.heartView.backgroundColor = UIColor.init(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.5)
         
         var keys: NSDictionary?
         
@@ -109,6 +137,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         
         // Scan for all available CoreBluetooth LE devices
         centralManager = CBCentralManager(delegate: self, queue: nil)
+        
+        
+        // Populate with fake data
+        //save(126, time: Date())
     }
     
     // MARK: - Navigation
@@ -117,6 +149,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let controller = segue.destination as? HeartDataTableViewController {
             controller.heartRateZones = self.heartRateZones
+            controller.zoneBackgroundColours = self.zoneColours
+            controller.zoneTextColours = self.zoneTextColours
         }
     }
     
@@ -399,6 +433,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             
             print("\(bpm) bpm")
             
+            if bpm > sessionMax {
+                sessionMax = bpm
+                self.sessionMaxLabel.text = "\(sessionMax)"
+            }
+            
             self.bpmLabel.text = "\(bpm) bpm"
             
             let currentDateTime = Date()
@@ -460,7 +499,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
 
         let parameters: Parameters = [
-            "device": "mio", //self.deviceName,
+            "device": self.deviceName,
             "location" : self.location,
             "hr": "\(bpm)",
             "author": author,
