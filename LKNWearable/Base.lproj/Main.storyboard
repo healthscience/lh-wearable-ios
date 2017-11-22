@@ -33,10 +33,10 @@
                                             <constraint firstAttribute="height" constant="150" id="q3f-Dk-UsG"/>
                                         </constraints>
                                     </view>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="bpm" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="d5D-mB-HAW">
-                                        <rect key="frame" x="47.5" y="70" width="104" height="60"/>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="000 bpm" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="d5D-mB-HAW">
+                                        <rect key="frame" x="-11" y="69.5" width="222" height="62.5"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="50"/>
+                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="52"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                 </subviews>

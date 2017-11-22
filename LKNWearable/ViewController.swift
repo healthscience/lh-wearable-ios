@@ -431,14 +431,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }
             }
             
-            print("\(bpm) bpm")
-            
             if bpm > sessionMax {
                 sessionMax = bpm
                 self.sessionMaxLabel.text = "\(sessionMax)"
             }
             
-            self.bpmLabel.text = "\(bpm) bpm"
+            self.bpmLabel.text = "\(bpm)"
             
             let currentDateTime = Date()
             
