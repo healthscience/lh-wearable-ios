@@ -39,8 +39,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     // Heart Rate Zones
     var restingHeartRate = 63
-    var age = 44
+    var age = 0
     var heartRateReserve = 0
+    
+    var dob = Date()
     
     var zoneColours = [UIColor.magenta, UIColor.blue, UIColor.green, UIColor.yellow, UIColor.orange, UIColor.red]
     var zoneTextColours = [UIColor.white, UIColor.white, UIColor.black, UIColor.black, UIColor.white, UIColor.white]
@@ -86,23 +88,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         
         self.sessionMaxLabel.text = "\(sessionMax)"
         
-        let maxHeartRate = 220 - age
-        heartRateReserve = maxHeartRate - restingHeartRate
-        
-        heartRateZones.append((Int(Double(heartRateReserve) * 0.0) + restingHeartRate)...(Int(Double(heartRateReserve) * 0.5) + restingHeartRate))
-        heartRateZones.append((Int(Double(heartRateReserve) * 0.5) + restingHeartRate)...(Int(Double(heartRateReserve) * 0.6) + restingHeartRate))
-        heartRateZones.append((Int(Double(heartRateReserve) * 0.6) + restingHeartRate)...(Int(Double(heartRateReserve) * 0.7) + restingHeartRate))
-        heartRateZones.append((Int(Double(heartRateReserve) * 0.7) + restingHeartRate)...(Int(Double(heartRateReserve) * 0.8) + restingHeartRate))
-        heartRateZones.append((Int(Double(heartRateReserve) * 0.8) + restingHeartRate)...(Int(Double(heartRateReserve) * 0.9) + restingHeartRate))
-        heartRateZones.append((Int(Double(heartRateReserve) * 0.9) + restingHeartRate)...(Int(Double(heartRateReserve) * 1.0) + restingHeartRate))
-
-        zone0Label.text = "Zone 0 : less than \(heartRateZones[1].lowerBound)"
-        zone1Label.text = "Zone 1 : \(heartRateZones[1].lowerBound) - \(heartRateZones[1].upperBound)"
-        zone2Label.text = "Zone 2 : \(heartRateZones[2].lowerBound) - \(heartRateZones[2].upperBound)"
-        zone3Label.text = "Zone 3 : \(heartRateZones[3].lowerBound) - \(heartRateZones[3].upperBound)"
-        zone4Label.text = "Zone 4 : \(heartRateZones[4].lowerBound) - \(heartRateZones[4].upperBound)"
-        zone5Label.text = "Zone 5 : \(heartRateZones[5].lowerBound) - \(heartRateZones[5].upperBound)"
-        
         zone0Label.backgroundColor = zoneColours[0]
         zone1Label.backgroundColor = zoneColours[1]
         zone2Label.backgroundColor = zoneColours[2]
@@ -116,7 +101,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         zone3Label.textColor = zoneTextColours[3]
         zone4Label.textColor = zoneTextColours[4]
         zone5Label.textColor = zoneTextColours[5]
-        
         
         self.bpmLabel.text = "???"
         
@@ -132,7 +116,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         
         if let dict = keys {
             serverToken = (dict["serverToken"] as? String)!
-            author = (dict["author"] as? String)!
         }
         
         // Scan for all available CoreBluetooth LE devices
@@ -141,6 +124,48 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         
         // Populate with fake data
         //save(126, time: Date())
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        calculateHeartRateZones()
+        
+        let userDefaults = UserDefaults.standard
+        if let value = userDefaults.object(forKey: "author") as? String {
+            author = value
+        }
+    }
+    
+    // MARK:
+    func calculateHeartRateZones() {
+        let userDefaults = UserDefaults.standard
+        if let date = userDefaults.object(forKey: "dateOfBirth") as? Date {
+            dob = date
+        }
+        
+        let components = Calendar.current.dateComponents([.year], from: dob, to: Date())
+        
+        self.age = components.year!
+        
+        let maxHeartRate = 220 - age
+        heartRateReserve = maxHeartRate - restingHeartRate
+        
+        heartRateZones.removeAll()
+        
+        heartRateZones.append((Int(Double(heartRateReserve) * 0.0) + restingHeartRate)...(Int(Double(heartRateReserve) * 0.5) + restingHeartRate))
+        heartRateZones.append((Int(Double(heartRateReserve) * 0.5) + restingHeartRate)...(Int(Double(heartRateReserve) * 0.6) + restingHeartRate))
+        heartRateZones.append((Int(Double(heartRateReserve) * 0.6) + restingHeartRate)...(Int(Double(heartRateReserve) * 0.7) + restingHeartRate))
+        heartRateZones.append((Int(Double(heartRateReserve) * 0.7) + restingHeartRate)...(Int(Double(heartRateReserve) * 0.8) + restingHeartRate))
+        heartRateZones.append((Int(Double(heartRateReserve) * 0.8) + restingHeartRate)...(Int(Double(heartRateReserve) * 0.9) + restingHeartRate))
+        heartRateZones.append((Int(Double(heartRateReserve) * 0.9) + restingHeartRate)...(Int(Double(heartRateReserve) * 1.0) + restingHeartRate))
+        
+        zone0Label.text = "Zone 0 : less than \(heartRateZones[1].lowerBound)"
+        zone1Label.text = "Zone 1 : \(heartRateZones[1].lowerBound) - \(heartRateZones[1].upperBound)"
+        zone2Label.text = "Zone 2 : \(heartRateZones[2].lowerBound) - \(heartRateZones[2].upperBound)"
+        zone3Label.text = "Zone 3 : \(heartRateZones[3].lowerBound) - \(heartRateZones[3].upperBound)"
+        zone4Label.text = "Zone 4 : \(heartRateZones[4].lowerBound) - \(heartRateZones[4].upperBound)"
+        zone5Label.text = "Zone 5 : \(heartRateZones[5].lowerBound) - \(heartRateZones[5].upperBound)"
     }
     
     // MARK: - Navigation

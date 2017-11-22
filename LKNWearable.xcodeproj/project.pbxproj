@@ -16,6 +16,9 @@
 		493F21531F0D5EBC002237F7 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 493F21511F0D5EBC002237F7 /* LaunchScreen.storyboard */; };
 		495C431D1F4246510034DDB2 /* Keys.plist in Resources */ = {isa = PBXBuildFile; fileRef = 495C431C1F4246510034DDB2 /* Keys.plist */; };
 		495C431F1F4247160034DDB2 /* Keys_dummy.plist in Resources */ = {isa = PBXBuildFile; fileRef = 495C431E1F4247160034DDB2 /* Keys_dummy.plist */; };
+		49DC1B811FC5A246005064C0 /* SettingsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49DC1B801FC5A246005064C0 /* SettingsTableViewController.swift */; };
+		49DC1B831FC5A369005064C0 /* DateOfBirthViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49DC1B821FC5A369005064C0 /* DateOfBirthViewController.swift */; };
+		49DC1B851FC5B3FF005064C0 /* NameTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49DC1B841FC5B3FF005064C0 /* NameTableViewController.swift */; };
 		9E05C5C31C8DDCBF0204A5E3 /* Pods_LKNWearable.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DC19717F3BCEB6AA50E89EE /* Pods_LKNWearable.framework */; };
 /* End PBXBuildFile section */
 
@@ -33,6 +36,9 @@
 		493F21541F0D5EBC002237F7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		495C431C1F4246510034DDB2 /* Keys.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Keys.plist; sourceTree = "<group>"; };
 		495C431E1F4247160034DDB2 /* Keys_dummy.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Keys_dummy.plist; sourceTree = "<group>"; };
+		49DC1B801FC5A246005064C0 /* SettingsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTableViewController.swift; sourceTree = "<group>"; };
+		49DC1B821FC5A369005064C0 /* DateOfBirthViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateOfBirthViewController.swift; sourceTree = "<group>"; };
+		49DC1B841FC5B3FF005064C0 /* NameTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NameTableViewController.swift; sourceTree = "<group>"; };
 		D48DEF5507BFDBE507284E95 /* Pods-LKNWearable.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LKNWearable.release.xcconfig"; path = "Pods/Target Support Files/Pods-LKNWearable/Pods-LKNWearable.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -96,6 +102,9 @@
 				495C431E1F4247160034DDB2 /* Keys_dummy.plist */,
 				492AE8691FB089E000F7B7C1 /* LKNWearable.xcdatamodeld */,
 				492AE86C1FB08DCD00F7B7C1 /* HeartDataTableViewController.swift */,
+				49DC1B801FC5A246005064C0 /* SettingsTableViewController.swift */,
+				49DC1B821FC5A369005064C0 /* DateOfBirthViewController.swift */,
+				49DC1B841FC5B3FF005064C0 /* NameTableViewController.swift */,
 			);
 			path = LKNWearable;
 			sourceTree = "<group>";
@@ -246,6 +255,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				492AE86B1FB089E000F7B7C1 /* LKNWearable.xcdatamodeld in Sources */,
+				49DC1B831FC5A369005064C0 /* DateOfBirthViewController.swift in Sources */,
+				49DC1B851FC5B3FF005064C0 /* NameTableViewController.swift in Sources */,
+				49DC1B811FC5A246005064C0 /* SettingsTableViewController.swift in Sources */,
 				493F214B1F0D5EBC002237F7 /* ViewController.swift in Sources */,
 				492AE86D1FB08DCD00F7B7C1 /* HeartDataTableViewController.swift in Sources */,
 				493F21491F0D5EBC002237F7 /* AppDelegate.swift in Sources */,
