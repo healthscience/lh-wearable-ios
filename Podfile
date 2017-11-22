@@ -7,5 +7,7 @@ target 'LKNWearable' do
 
   # Pods for LKNWearable
   pod 'Alamofire', '~> 4.4'
+  pod 'Fabric'
+  pod 'Crashlytics'
 
 end
