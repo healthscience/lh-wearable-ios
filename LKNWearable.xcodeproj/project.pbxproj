@@ -36,6 +36,7 @@
 		493F21541F0D5EBC002237F7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		495C431C1F4246510034DDB2 /* Keys.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Keys.plist; sourceTree = "<group>"; };
 		495C431E1F4247160034DDB2 /* Keys_dummy.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Keys_dummy.plist; sourceTree = "<group>"; };
+		4992A51F1FC868800097A1D2 /* LKNWearable v2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "LKNWearable v2.xcdatamodel"; sourceTree = "<group>"; };
 		49DC1B801FC5A246005064C0 /* SettingsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTableViewController.swift; sourceTree = "<group>"; };
 		49DC1B821FC5A369005064C0 /* DateOfBirthViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateOfBirthViewController.swift; sourceTree = "<group>"; };
 		49DC1B841FC5B3FF005064C0 /* NameTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NameTableViewController.swift; sourceTree = "<group>"; };
@@ -438,9 +439,10 @@
 		492AE8691FB089E000F7B7C1 /* LKNWearable.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				4992A51F1FC868800097A1D2 /* LKNWearable v2.xcdatamodel */,
 				492AE86A1FB089E000F7B7C1 /* LKNWearable.xcdatamodel */,
 			);
-			currentVersion = 492AE86A1FB089E000F7B7C1 /* LKNWearable.xcdatamodel */;
+			currentVersion = 4992A51F1FC868800097A1D2 /* LKNWearable v2.xcdatamodel */;
 			path = LKNWearable.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

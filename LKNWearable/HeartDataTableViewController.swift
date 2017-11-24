@@ -9,7 +9,6 @@
 import UIKit
 import CoreData
 
-
 class HeartDataTableViewController: UITableViewController, UICollectionViewDelegate, UICollectionViewDataSource {
     
     var heartData = [NSManagedObject]()
@@ -73,7 +72,7 @@ class HeartDataTableViewController: UITableViewController, UICollectionViewDeleg
         let endDate = Calendar.current.date(byAdding: .day, value: 1, to: startDate)
         
         
-        let predicate = NSPredicate(format: "(timestamp >= %@) AND (timestamp < %@)", startDate as CVarArg, endDate! as CVarArg);
+        let predicate = NSPredicate(format: "(timestamp >= %@) AND (timestamp < %@) AND bpm > 0", startDate as CVarArg, endDate! as CVarArg);
         
         fetchRequest.predicate = predicate
         
@@ -111,9 +110,9 @@ class HeartDataTableViewController: UITableViewController, UICollectionViewDeleg
             date = value
         }
         
-        var posted = false
-        if let value = heartRate.value(forKey: "posted") as? Bool {
-            posted = value
+        var status = 0
+        if let value = heartRate.value(forKey: "status") as? Int {
+            status = value
         }
         
         var currentZone = 0
@@ -135,10 +134,18 @@ class HeartDataTableViewController: UITableViewController, UICollectionViewDeleg
         let zoneLabel = cell.viewWithTag(3) as! UILabel
         timeLabel.text = formatter.string(from: date)
         
-        if posted {
-            timeLabel.textColor = .green
-        } else {
+        switch status {
+        case 0: // unsent
             timeLabel.textColor = .red
+            
+        case 1: // queued for batch sending
+            timeLabel.textColor = .orange
+            
+        case 2: // sent
+            timeLabel.textColor = UIColor(red: 0, green: 0.5, blue: 0, alpha: 1.0)
+        
+        default:
+            timeLabel.textColor = .blue
         }
         
         bpmLabel.text = "\(bpm)"

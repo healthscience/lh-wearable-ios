@@ -70,6 +70,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var sessionMax = 0
     
     var heartData = [NSManagedObject]()
+    var maxBatchSize = 1000
     
     var hasLostConnection = false
     
@@ -491,6 +492,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         self.scanBLEDevices()
     }
     
+    @IBAction func sendDataTapped(_ sender: Any) {
+        amountOfUnsentData()
+        queueDataForSending()
+        batchUnsentData()
+    }
+    
+    @IBAction func resetMaxTapped(_ sender: Any) {
+        self.sessionMax = 0
+        self.sessionMaxLabel.text = "\(sessionMax)"
+    }
+    
     // CoreData
     func save(_ bpm: Int, time: Date) {
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
@@ -511,6 +523,195 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             heartData.append(heartRate)
         } catch let error as NSError {
             print("Could not save \(error), \(error.userInfo)")
+        }
+    }
+    
+    func amountOfUnsentData() {
+        guard let appDelegate =
+            UIApplication.shared.delegate as? AppDelegate else {
+                return
+        }
+        
+        let managedContext = appDelegate.persistentContainer.viewContext
+        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "HeartRate")
+        let sort = NSSortDescriptor(key: "timestamp", ascending: false)
+        let sortDescriptors = [sort]
+        fetchRequest.sortDescriptors = sortDescriptors
+        
+        let predicate = NSPredicate(format: "status == %@ AND bpm > 0", NSNumber(value: 0))
+        
+        fetchRequest.predicate = predicate
+        do {
+            let fetchedEntities = try managedContext.fetch(fetchRequest)
+            print("\(fetchedEntities.count) still to send")
+            
+        } catch let error as NSError {
+            print("Could not fetch. \(error), \(error.userInfo)")
+        }
+    }
+    
+    func queueDataForSending() {
+        guard let appDelegate =
+            UIApplication.shared.delegate as? AppDelegate else {
+                return
+        }
+        
+        let managedContext = appDelegate.persistentContainer.viewContext
+        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "HeartRate")
+        let sort = NSSortDescriptor(key: "timestamp", ascending: false)
+        let sortDescriptors = [sort]
+        fetchRequest.sortDescriptors = sortDescriptors
+        fetchRequest.fetchLimit = maxBatchSize
+        
+        let predicate = NSPredicate(format: "status == %@ AND bpm > 0", NSNumber(value: 0))
+        
+        fetchRequest.predicate = predicate
+        do {
+            let fetchedEntities = try managedContext.fetch(fetchRequest)
+            
+            for entity in fetchedEntities {
+                entity.setValue(NSNumber(value: 1), forKey: "status")
+            }
+        } catch let error as NSError {
+            print("Could not fetch. \(error), \(error.userInfo)")
+        }
+        
+        do {
+            try managedContext.save()
+        } catch let error as NSError {
+            print("Could not save \(error), \(error.userInfo)")
+        }
+    }
+    
+    func dequeueSentData() {
+        guard let appDelegate =
+            UIApplication.shared.delegate as? AppDelegate else {
+                return
+        }
+        
+        let managedContext = appDelegate.persistentContainer.viewContext
+        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "HeartRate")
+        let sort = NSSortDescriptor(key: "timestamp", ascending: false)
+        let sortDescriptors = [sort]
+        fetchRequest.sortDescriptors = sortDescriptors
+        
+        let predicate = NSPredicate(format: "status == %@", NSNumber(value: 1))
+        
+        fetchRequest.predicate = predicate
+        do {
+            let fetchedEntities = try managedContext.fetch(fetchRequest)
+            
+            for entity in fetchedEntities {
+                entity.setValue(NSNumber(value: 2), forKey: "status")
+            }
+        } catch let error as NSError {
+            print("Could not fetch. \(error), \(error.userInfo)")
+        }
+        
+        do {
+            try managedContext.save()
+        } catch let error as NSError {
+            print("Could not save \(error), \(error.userInfo)")
+        }
+    }
+    
+    func dequeueFailedSendData() {
+        guard let appDelegate =
+            UIApplication.shared.delegate as? AppDelegate else {
+                return
+        }
+        
+        let managedContext = appDelegate.persistentContainer.viewContext
+        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "HeartRate")
+        let sort = NSSortDescriptor(key: "timestamp", ascending: false)
+        let sortDescriptors = [sort]
+        fetchRequest.sortDescriptors = sortDescriptors
+        
+        let predicate = NSPredicate(format: "status == %@", NSNumber(value: 1))
+        
+        fetchRequest.predicate = predicate
+        do {
+            let fetchedEntities = try managedContext.fetch(fetchRequest)
+            
+            for entity in fetchedEntities {
+                entity.setValue(NSNumber(value: 0), forKey: "status")
+            }
+        } catch let error as NSError {
+            print("Could not fetch. \(error), \(error.userInfo)")
+        }
+        
+        do {
+            try managedContext.save()
+        } catch let error as NSError {
+            print("Could not save \(error), \(error.userInfo)")
+        }
+    }
+    
+    func batchUnsentData() {
+        guard let appDelegate =
+            UIApplication.shared.delegate as? AppDelegate else {
+                return
+        }
+        
+        let managedContext = appDelegate.persistentContainer.viewContext
+        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "HeartRate")
+        let sort = NSSortDescriptor(key: "timestamp", ascending: false)
+        let sortDescriptors = [sort]
+        fetchRequest.sortDescriptors = sortDescriptors
+        
+        let predicate = NSPredicate(format: "status == %@ AND bpm > 0", NSNumber(value: 1))
+        
+        fetchRequest.predicate = predicate
+        
+        var batchHeartData = [NSManagedObject]()
+        
+        var batchJSON = [Parameters]()
+
+        do {
+            batchHeartData = try managedContext.fetch(fetchRequest)
+            
+            let locations = ["other", "chest", "wrist", "finger", "hand", "ear lobe", "foot"]
+            
+            for heartRate in batchHeartData {
+            
+                var bpm = 0
+                if let value = heartRate.value(forKey: "bpm") as? Int {
+                    bpm = value
+                }
+                
+                var time = Date()
+                if let value = heartRate.value(forKey: "timestamp") as? Date {
+                    time = value
+                }
+                
+                var device = ""
+                if let value = heartRate.value(forKey: "device") as? String {
+                    device = value
+                }
+                
+                var location = 0
+                if let value = heartRate.value(forKey: "location") as? Int {
+                    location = value
+                }
+                
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+                
+                let parameters: Parameters = [
+                    "device": device,
+                    "location" : locations[location],
+                    "hr": "\(bpm)",
+                    "author": author,
+                    "timestamp": formatter.string(from: time)
+                ]
+                
+                batchJSON.append(parameters)
+            }
+            
+            batchPostHeartRate(batchJSON)
+
+        } catch let error as NSError {
+            print("Could not fetch. \(error), \(error.userInfo)")
         }
     }
     
@@ -537,9 +738,70 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
  */
   
         // Both calls are equivalent
+        // Test server
+        Alamofire.request("http://188.166.138.93:8882/datasave/\(serverToken)", method: .post, parameters: parameters, encoding: JSONEncoding.default)
+            .responseJSON { response in
+                debugPrint(response)
+        }
+        
+        // Live server
+        /*
         Alamofire.request("http://188.166.138.93:8881/datasave/\(serverToken)", method: .post, parameters: parameters, encoding: JSONEncoding.default)
             .responseJSON { response in
                 debugPrint(response)
         }
+         */
+    }
+    
+    func batchPostHeartRate(_ data:[Parameters]) {
+        
+        print("Sending \(data.count) entries to server")
+        let parameters: Parameters = [
+            "hrbatch100": data
+        ]
+        
+        /*
+         let docsBaseURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+         let heartDataURL = docsBaseURL.appendingPathComponent("heartdata.plist")
+         
+         heartData.append(parameters)
+         */
+        
+        UIApplication.shared.isNetworkActivityIndicatorVisible = true
+
+        
+        // Both calls are equivalent
+        // Test server
+        Alamofire.request("http://188.166.138.93:8882/datasave/\(serverToken)", method: .post, parameters: parameters, encoding: JSONEncoding.default)
+            .responseJSON { response in
+                UIApplication.shared.isNetworkActivityIndicatorVisible = false
+                switch response.result {
+                case .success(let data):
+                    if let objectDictionary = data as? Dictionary<String, AnyObject> {
+                        let save = objectDictionary["save"] as! String
+                        if save == "passed" {
+                            print("Successfully saved to server")
+                            self.dequeueSentData()
+                        } else {
+                            print("Server failed to save: \(save)")
+                            self.dequeueFailedSendData()
+                        }
+                    }
+                    
+                case .failure(let error):
+                    debugPrint(response)
+                    print(error.localizedDescription)
+                    self.dequeueFailedSendData()
+                }
+                
+        }
+        
+        // Live server
+        /*
+         Alamofire.request("http://188.166.138.93:8881/datasave/\(serverToken)", method: .post, parameters: parameters, encoding: JSONEncoding.default)
+         .responseJSON { response in
+         debugPrint(response)
+         }
+         */
     }
 }
