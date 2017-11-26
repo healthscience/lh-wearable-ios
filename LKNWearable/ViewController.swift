@@ -31,6 +31,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet weak var zone5Label: UILabel!
     @IBOutlet weak var currentZoneLabel: UILabel!
     @IBOutlet weak var sessionMaxLabel: UILabel!
+    @IBOutlet weak var unsentDataLabel: UILabel!
     
     // BLE stuff
     var centralManager: CBCentralManager? = nil
@@ -77,6 +78,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     // Server stuff
     var serverToken = ""
     var author = ""
+    var postTimer: Timer!
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -121,6 +124,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         
         // Scan for all available CoreBluetooth LE devices
         centralManager = CBCentralManager(delegate: self, queue: nil)
+        
+        
+        postTimer = Timer.scheduledTimer(timeInterval: 600, target: self, selector: #selector(sendData), userInfo: nil, repeats: true)
+        
+        self.amountOfUnsentData()
+
         
         
         // Populate with fake data
@@ -493,14 +502,18 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func sendDataTapped(_ sender: Any) {
-        amountOfUnsentData()
-        queueDataForSending()
-        batchUnsentData()
+        sendData()
     }
     
     @IBAction func resetMaxTapped(_ sender: Any) {
         self.sessionMax = 0
         self.sessionMaxLabel.text = "\(sessionMax)"
+    }
+    
+    func sendData() {
+        amountOfUnsentData()
+        queueDataForSending()
+        batchUnsentData()
     }
     
     // CoreData
@@ -521,6 +534,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         do {
             try managedContext.save()
             heartData.append(heartRate)
+            self.amountOfUnsentData()
         } catch let error as NSError {
             print("Could not save \(error), \(error.userInfo)")
         }
@@ -544,6 +558,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         do {
             let fetchedEntities = try managedContext.fetch(fetchRequest)
             print("\(fetchedEntities.count) still to send")
+            self.unsentDataLabel.text = "\(fetchedEntities.count)"
             
         } catch let error as NSError {
             print("Could not fetch. \(error), \(error.userInfo)")

@@ -151,6 +151,12 @@
                                     <action selector="resetMaxTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="H7Y-vG-hm9"/>
                                 </connections>
                             </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="DcG-aY-4Jz">
+                                <rect key="frame" x="20" y="281" width="59" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
@@ -175,11 +181,13 @@
                             <constraint firstItem="n3y-3h-VLH" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Mq4-XM-a8u"/>
                             <constraint firstItem="CCs-ZS-mMs" firstAttribute="top" secondItem="FWm-Os-7Hs" secondAttribute="bottom" constant="8" symbolic="YES" id="NdV-ab-JsO"/>
                             <constraint firstItem="lK3-Rb-z9l" firstAttribute="top" secondItem="vNE-EC-r4c" secondAttribute="bottom" constant="8" symbolic="YES" id="O3i-zc-KA3"/>
+                            <constraint firstItem="n3y-3h-VLH" firstAttribute="leading" secondItem="DcG-aY-4Jz" secondAttribute="trailing" constant="8" symbolic="YES" id="OsJ-qq-1Cc"/>
                             <constraint firstItem="LO6-Ay-rC0" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" id="WCd-ik-Ox6"/>
                             <constraint firstAttribute="trailing" secondItem="CCs-ZS-mMs" secondAttribute="trailing" constant="20" symbolic="YES" id="WIl-ax-h7M"/>
                             <constraint firstAttribute="trailingMargin" secondItem="win-uh-imW" secondAttribute="trailing" id="WS4-I6-tBn"/>
                             <constraint firstAttribute="trailingMargin" secondItem="5ec-Oo-jJf" secondAttribute="trailing" id="Z0e-7L-IYa"/>
                             <constraint firstItem="OZC-BP-poE" firstAttribute="top" secondItem="Cp3-3a-lq9" secondAttribute="bottom" id="blU-Th-5Da"/>
+                            <constraint firstItem="DcG-aY-4Jz" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="20" symbolic="YES" id="bzp-11-tct"/>
                             <constraint firstItem="rIn-Rv-XBk" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="cR9-HK-dpO"/>
                             <constraint firstAttribute="trailingMargin" secondItem="OZC-BP-poE" secondAttribute="trailing" id="czi-cS-jry"/>
                             <constraint firstItem="5ec-Oo-jJf" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" id="d9j-vT-zGk"/>
@@ -194,6 +202,7 @@
                             <constraint firstItem="n3y-3h-VLH" firstAttribute="top" secondItem="rIn-Rv-XBk" secondAttribute="bottom" constant="8.5" id="o27-jG-ecr"/>
                             <constraint firstAttribute="trailingMargin" secondItem="Uc6-Pc-9sv" secondAttribute="trailing" id="oJM-Mg-KZd"/>
                             <constraint firstItem="FHP-gy-MHo" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" id="oPv-sJ-nLs"/>
+                            <constraint firstItem="DcG-aY-4Jz" firstAttribute="centerY" secondItem="d5D-mB-HAW" secondAttribute="centerY" id="qLu-QI-cfs"/>
                             <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="Uc6-Pc-9sv" secondAttribute="bottom" constant="8" symbolic="YES" id="qUx-gu-3Zx"/>
                             <constraint firstItem="VML-0F-jJh" firstAttribute="leading" secondItem="FWm-Os-7Hs" secondAttribute="leading" id="u1r-j5-wjm"/>
                             <constraint firstAttribute="trailingMargin" secondItem="VTo-Gy-v6F" secondAttribute="trailing" id="wcH-ie-3MS"/>
@@ -232,6 +241,7 @@
                         <outlet property="scanButton" destination="e2E-xx-p0G" id="pXJ-xM-zS5"/>
                         <outlet property="sessionMaxLabel" destination="FWm-Os-7Hs" id="1TU-d3-9Hp"/>
                         <outlet property="statusLabel" destination="Uc6-Pc-9sv" id="0Lm-8K-S2r"/>
+                        <outlet property="unsentDataLabel" destination="DcG-aY-4Jz" id="5X1-Xm-Qas"/>
                         <outlet property="zone0Label" destination="lK3-Rb-z9l" id="LU3-TR-0GQ"/>
                         <outlet property="zone1Label" destination="win-uh-imW" id="rlx-Js-kvB"/>
                         <outlet property="zone2Label" destination="FHP-gy-MHo" id="HdN-Ii-qRE"/>

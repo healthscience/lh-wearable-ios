@@ -395,7 +395,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.-lknhealth.LKNWearable";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "3ea7640f-3cfd-4995-b624-bca31be139a6";
+				PROVISIONING_PROFILE = "40471e48-10dd-4405-b6e9-8c10c5ae0cd5";
 				PROVISIONING_PROFILE_SPECIFIER = "LKNWearable Ad Hoc";
 				SWIFT_VERSION = 3.0;
 			};
@@ -414,7 +414,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.-lknhealth.LKNWearable";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "3ea7640f-3cfd-4995-b624-bca31be139a6";
+				PROVISIONING_PROFILE = "40471e48-10dd-4405-b6e9-8c10c5ae0cd5";
 				PROVISIONING_PROFILE_SPECIFIER = "LKNWearable Ad Hoc";
 				SWIFT_VERSION = 3.0;
 			};
