@@ -31,6 +31,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet weak var zone5Label: UILabel!
     @IBOutlet weak var currentZoneLabel: UILabel!
     @IBOutlet weak var sessionMaxLabel: UILabel!
+    @IBOutlet weak var sessionMaxTitleLabel: UILabel!
     @IBOutlet weak var unsentDataLabel: UILabel!
     
     // BLE stuff
@@ -69,6 +70,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var currentZone = 0
     
     var sessionMax = 0
+    var sessionMaxZone = 0
     
     var heartData = [NSManagedObject]()
     var maxBatchSize = 1000
@@ -140,6 +142,18 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         super.viewWillAppear(animated)
         
         calculateHeartRateZones()
+        
+        
+        for zone in 0...5 {
+            let zoneRange = heartRateZones[zone]
+            if zoneRange.contains(sessionMax) {
+                sessionMaxZone = zone
+                break
+            }
+        }
+        self.sessionMaxLabel.textColor = zoneTextColours[sessionMaxZone]
+        self.sessionMaxTitleLabel.textColor = zoneTextColours[sessionMaxZone]
+        self.currentZoneLabel.textColor = zoneTextColours[sessionMaxZone]
         
         let userDefaults = UserDefaults.standard
         if let value = userDefaults.object(forKey: "author") as? String {
@@ -469,6 +483,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             if bpm > sessionMax {
                 sessionMax = bpm
                 self.sessionMaxLabel.text = "\(sessionMax)"
+                for zone in 0...5 {
+                    let zoneRange = heartRateZones[zone]
+                    if zoneRange.contains(sessionMax) {
+                        sessionMaxZone = zone
+                        break
+                    }
+                }
+                self.sessionMaxLabel.textColor = zoneTextColours[sessionMaxZone]
+                self.sessionMaxTitleLabel.textColor = zoneTextColours[sessionMaxZone]
+                self.currentZoneLabel.textColor = zoneTextColours[sessionMaxZone]
             }
             
             self.bpmLabel.text = "\(bpm)"
@@ -479,7 +503,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             let formatter = DateFormatter()
             formatter.timeStyle = .medium
             formatter.dateStyle = .long
-        
+            
             for zone in 0...5 {
                 let zoneRange = heartRateZones[zone]
                 if zoneRange.contains(bpm) {
@@ -487,9 +511,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     break
                 }
             }
+            self.bpmLabel.textColor = zoneTextColours[currentZone]
             self.lastUpdatedLabel.text = formatter.string(from: currentDateTime)
             self.currentZoneLabel.text = "Zone \(currentZone)"
             self.heartView.backgroundColor = zoneColours[currentZone]
+            self.heartInsideView.backgroundColor = zoneColours[sessionMaxZone]
             save(bpm, time: currentDateTime)
             //postHeartRate(bpm, time: currentDateTime)
         }
