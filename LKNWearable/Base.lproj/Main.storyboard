@@ -29,9 +29,15 @@
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="n3y-3h-VLH">
                                 <rect key="frame" x="87" y="162" width="200" height="200"/>
                                 <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Max" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="VML-0F-jJh">
+                                        <rect key="frame" x="84" y="177" width="32" height="21"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="iig-xd-njZ">
                                         <rect key="frame" x="25" y="24.5" width="150" height="150"/>
-                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        <color key="backgroundColor" red="0.0" green="1" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="150" id="WT5-rv-tiI"/>
                                             <constraint firstAttribute="height" constant="150" id="q3f-Dk-UsG"/>
@@ -55,12 +61,6 @@
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Max" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="VML-0F-jJh">
-                                        <rect key="frame" x="84" y="154.5" width="32" height="21"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                        <nil key="textColor"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
                                 </subviews>
                                 <color key="backgroundColor" red="0.8980392157" green="0.1058823529" blue="0.16862745100000001" alpha="1" colorSpace="calibratedRGB"/>
                                 <constraints>
@@ -68,8 +68,8 @@
                                     <constraint firstItem="rIn-Rv-XBk" firstAttribute="centerX" secondItem="n3y-3h-VLH" secondAttribute="centerX" id="8W7-hn-dkd"/>
                                     <constraint firstItem="iig-xd-njZ" firstAttribute="centerY" secondItem="n3y-3h-VLH" secondAttribute="centerY" id="Aa3-lo-ro9"/>
                                     <constraint firstItem="FWm-Os-7Hs" firstAttribute="centerX" secondItem="n3y-3h-VLH" secondAttribute="centerX" id="Aef-6G-ahT"/>
-                                    <constraint firstItem="VML-0F-jJh" firstAttribute="top" secondItem="FWm-Os-7Hs" secondAttribute="bottom" constant="4" id="TBY-tJ-V5p"/>
                                     <constraint firstItem="FWm-Os-7Hs" firstAttribute="centerY" secondItem="n3y-3h-VLH" secondAttribute="centerY" multiplier="1.4" id="V7R-B1-uKf"/>
+                                    <constraint firstAttribute="bottom" secondItem="VML-0F-jJh" secondAttribute="bottom" constant="2" id="Ysp-9n-wa3"/>
                                     <constraint firstAttribute="width" constant="200" id="axk-hn-ajX"/>
                                     <constraint firstItem="d5D-mB-HAW" firstAttribute="centerX" secondItem="n3y-3h-VLH" secondAttribute="centerX" id="byZ-ll-2tG"/>
                                     <constraint firstAttribute="height" constant="200" id="qcf-m4-h6P"/>
@@ -158,7 +158,7 @@
                                     <action selector="resetMaxTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="H7Y-vG-hm9"/>
                                 </connections>
                             </button>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="DcG-aY-4Jz">
+                            <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="DcG-aY-4Jz">
                                 <rect key="frame" x="20" y="251" width="59" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
@@ -234,8 +234,8 @@
                         <outlet property="batteryLevelLabel" destination="LO6-Ay-rC0" id="iGX-6M-NWf"/>
                         <outlet property="bpmLabel" destination="d5D-mB-HAW" id="Mz9-5h-f6A"/>
                         <outlet property="currentZoneLabel" destination="rIn-Rv-XBk" id="W8F-1b-jG0"/>
-                        <outlet property="heartInsideView" destination="iig-xd-njZ" id="lfL-yQ-j6g"/>
-                        <outlet property="heartView" destination="n3y-3h-VLH" id="mOu-ln-Xfa"/>
+                        <outlet property="heartInsideView" destination="n3y-3h-VLH" id="mlz-a6-3yv"/>
+                        <outlet property="heartView" destination="iig-xd-njZ" id="a2K-tj-DIA"/>
                         <outlet property="lastUpdatedLabel" destination="vNE-EC-r4c" id="cLg-ef-U7U"/>
                         <outlet property="locationLabel" destination="VTo-Gy-v6F" id="CIE-ND-iPZ"/>
                         <outlet property="manufacturerLabel" destination="Cvy-7R-9jy" id="iOp-uJ-6co"/>

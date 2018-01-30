@@ -10,6 +10,8 @@ import UIKit
 import CoreBluetooth
 import Alamofire
 import CoreData
+import UserNotifications
+
 
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
     
@@ -86,10 +88,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.heartView.layer.cornerRadius = 100
+        self.heartView.layer.cornerRadius = 75
         self.heartView.clipsToBounds = true
         
-        self.heartInsideView.layer.cornerRadius = 75
+        self.heartInsideView.layer.cornerRadius = 100
         self.heartInsideView.clipsToBounds = true
         
         self.sessionMaxLabel.text = "\(sessionMax)"
@@ -128,7 +130,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         centralManager = CBCentralManager(delegate: self, queue: nil)
         
         
-        postTimer = Timer.scheduledTimer(timeInterval: 600, target: self, selector: #selector(sendData), userInfo: nil, repeats: true)
+        postTimer = Timer.scheduledTimer(timeInterval: 30, target: self, selector: #selector(sendData), userInfo: nil, repeats: true)
         
         self.amountOfUnsentData()
 
@@ -585,6 +587,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             let fetchedEntities = try managedContext.fetch(fetchRequest)
             print("\(fetchedEntities.count) still to send")
             self.unsentDataLabel.text = "\(fetchedEntities.count)"
+            UIApplication.shared.applicationIconBadgeNumber = fetchedEntities.count
             
         } catch let error as NSError {
             print("Could not fetch. \(error), \(error.userInfo)")
