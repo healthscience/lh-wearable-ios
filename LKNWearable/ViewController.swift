@@ -130,7 +130,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         centralManager = CBCentralManager(delegate: self, queue: nil)
         
         
-        postTimer = Timer.scheduledTimer(timeInterval: 30, target: self, selector: #selector(sendData), userInfo: nil, repeats: true)
+        postTimer = Timer.scheduledTimer(timeInterval: 600, target: self, selector: #selector(sendData), userInfo: nil, repeats: true)
         
         self.amountOfUnsentData()
 
